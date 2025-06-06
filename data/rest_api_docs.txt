@@ -1,0 +1,148 @@
+Guide to PHARMACOLOGY REST API Documentation
+
+Base URL:
+https://www.guidetopharmacology.org/services/
+
+The Guide to PHARMACOLOGY REST API provides programmatic access to pharmacological data including targets, ligands, interactions, diseases, and more. All endpoints return JSON.
+
+---
+
+Table of Contents
+
+- Targets
+- Ligands
+- Interactions
+- Families
+- References
+- Other Endpoints
+- Parameters
+- Licensing
+- Python Wrapper
+
+---
+
+Targets
+
+Description                          Endpoint                                  Parameters
+---------------------------------------------------------------------------------------------------
+List of targets                     /targets                                 type, name, geneSymbol, ecNumber, accession, database, immuno, malaria
+Single target                      /targets/{targetId}                       targetId
+List of target families            /targets/families                        type, name
+Single family                     /targets/families/{familyId}              familyId
+Component subunits                /targets/{targetId}/subunits               -
+Complexes                        /targets/{targetId}/complexes              -
+Synonyms                        /targets/{targetId}/synonyms               -
+Gene and protein info            /targets/{targetId}/geneProteinInformation species
+Database links                  /targets/{targetId}/databaseLinks           species, database
+Natural/endogenous ligands      /targets/{targetId}/naturalLigands          -
+Interactions                   /targets/{targetId}/interactions             type, affinityParameter, species, affinity, ligandType, approved, primaryTarget
+Rank order lists              /targets/{targetId}/rankOrder                 species
+Function                     /targets/{targetId}/function                   species
+Tissue distribution          /targets/{targetId}/tissueDistribution        species
+Functional assay             /targets/{targetId}/functionalAssay           species
+Gene expression & pathophysiology /targets/{targetId}/geneExpressionPathophysiology species
+Altered expression           /targets/{targetId}/alteredExpression          species
+Xenobiotics influencing expression /targets/{targetId}/xenobioticsGeneExpression species
+Pathophysiology             /targets/{targetId}/pathophysiology             species
+Diseases                   /targets/{targetId}/diseases                      -
+Variants                   /targets/{targetId}/variants                      species
+PDB structures             /targets/{targetId}/pdbStructure                 -
+Associated proteins        /targets/{targetId}/associatedProteins           -
+Ion selectivity            /targets/{targetId}/ionSelectivity                species
+Ion conductance           /targets/{targetId}/ionConductance                 species
+Voltage dependence        /targets/{targetId}/voltageDependence              species
+GPCR transduction mechanisms /targets/{targetId}/transduction                 species
+NHR binding partners      /targets/{targetId}/bindingPartners                 -
+NHR co-regulators         /targets/{targetId}/coregulators                    -
+NHR target genes          /targets/{targetId}/targetGenes                      species
+NHR DNA binding sequence  /targets/{targetId}/dnaBinding                       -
+Enzyme reaction           /targets/{targetId}/reactions                         -
+Substrates               /targets/{targetId}/substrates                        species
+Products                 /targets/{targetId}/products                          species
+Cofactors                /targets/{targetId}/cofactors                         species
+Target comments          /targets/{targetId}/comments                          species, database
+Immunological Processes  /targets/{targetId}/immunoProcesses                   -
+Immunological Celltypes  /targets/{targetId}/immunoCelltypes                   -
+Target contributing authors /targets/{targetId}/contributors                      -
+
+---
+
+Ligands
+
+Description                 Endpoint                    Parameters
+---------------------------------------------------------------
+List of ligands            /ligands                    type, name, geneSymbol, accession, database, inchikey, lipinskyGt, lipinskyLt, logpGt, logpLt, molWeightGt, molWeightLt, hBondAcceptorsGt, hBondAcceptorsLt, hBondDonorsGt, hBondDonorsLt, rotatableBondsGt, rotatableBondsLt, tpsaGt, tpsaLt, immuno, malaria, antibacterial
+Exact match structure search /ligands/exact             smiles
+
+---
+
+Interactions
+
+Description                 Endpoint                    Parameters
+---------------------------------------------------------------
+List of interactions       /interactions               targetId, ligandId, type, affinityType, species, affinity, ligandType, approved, primaryTarget
+
+---
+
+Families
+
+Description                 Endpoint                    Parameters
+---------------------------------------------------------------
+Family contributing authors /targets/families/{familyId}/contributors
+Family NC-IUPHAR subcommittee /targets/families/{familyId}/subcommittee
+Family overview            /targets/families/{familyId}/overview
+Family comments            /targets/families/{familyId}/comments
+Family introduction        /targets/families/{familyId}/introduction
+Introduction contributing authors /targets/families/{familyId}/introduction/contributors
+
+---
+
+References
+
+Description                 Endpoint                    Parameters
+---------------------------------------------------------------
+List of references         /references
+Single reference           /references/{referenceId}    referenceId
+
+---
+
+Other Endpoints
+
+- Diseases: /diseases
+- Text annotations: /textAnnotations
+- Search: /search
+
+---
+
+Parameters
+
+- type: Target or ligand class (e.g., GPCR, Enzyme, Synthetic organic, etc.)
+- name: Search by name
+- geneSymbol: Gene symbol (human, mouse, rat)
+- ecNumber: Enzyme Commission number
+- accession: External database accession or ID
+- database: Name of external database (default varies)
+- species: Species name (e.g., Human, Mouse, Rat)
+- immuno, malaria, antibacterial: Boolean filters for special tagging
+- affinityType, affinity: Filter by affinity type/value
+- approved, primaryTarget: Boolean filters
+- inchikey, smiles: Chemical identifiers for ligand search
+- Various numeric filters for ligand properties (e.g., molecular weight, LogP, H-bond donors/acceptors)
+
+---
+
+Licensing
+
+- Database: Open Data Commons Open Database License (ODbL)
+- Contents: Creative Commons Attribution-ShareAlike 4.0 International License
+
+---
+
+Python Wrapper
+
+- pyGtoP: A Python interface to the web services is available on GitHub.
+- Not actively maintained.
+
+---
+
+Example Request
