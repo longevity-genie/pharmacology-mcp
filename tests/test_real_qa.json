@@ -1,0 +1,74 @@
+[
+  {
+    "question": "Find dopamine-related targets and save them to a file called dopamine_targets.json",
+    "expected_tools": ["search_targets_to_file"],
+    "expected_parameters": {
+      "name": "dopamine",
+      "filename": "dopamine_targets.json"
+    },
+    "answer": "I'll search for dopamine-related targets using the search_targets_to_file tool with name='dopamine' and save the results to dopamine_targets.json."
+  },
+  {
+    "question": "Search for aspirin ligands and save the results to aspirin_ligands.json",
+    "expected_tools": ["search_ligands_to_file"],
+    "expected_parameters": {
+      "name": "aspirin",
+      "filename": "aspirin_ligands.json"
+    },
+    "answer": "I'll search for aspirin-related ligands using the search_ligands_to_file tool with name='aspirin' and save the results to aspirin_ligands.json."
+  },
+  {
+    "question": "Get interaction data for target ID 2486 and save it to target_2486_interactions.json",
+    "expected_tools": ["get_target_interactions_to_file"],
+    "expected_parameters": {
+      "target_id": 2486,
+      "filename": "target_2486_interactions.json"
+    },
+    "answer": "I'll retrieve interaction data for target 2486 using the get_target_interactions_to_file tool and save the results to target_2486_interactions.json."
+  },
+  {
+    "question": "Find GPCR targets and save them to gpcr_targets.json",
+    "expected_tools": ["search_targets_to_file"],
+    "expected_parameters": {
+      "target_type": "GPCR",
+      "filename": "gpcr_targets.json"
+    },
+    "answer": "I'll search for GPCR targets using the search_targets_to_file tool with target_type='GPCR' and save the results to gpcr_targets.json."
+  },
+  {
+    "question": "Search for approved drugs and save them to approved_drugs.json",
+    "expected_tools": ["search_ligands_to_file"],
+    "expected_parameters": {
+      "approved": true,
+      "filename": "approved_drugs.json"
+    },
+    "answer": "I'll search for approved drugs using the search_ligands_to_file tool with approved=true and save the results to approved_drugs.json."
+  },
+  {
+    "question": "Find targets related to the gene symbol ADRA2A and save to adra2a_targets.json",
+    "expected_tools": ["search_targets_to_file"],
+    "expected_parameters": {
+      "gene_symbol": "ADRA2A",
+      "filename": "adra2a_targets.json"
+    },
+    "answer": "I'll search for targets with gene symbol ADRA2A using the search_targets_to_file tool and save the results to adra2a_targets.json."
+  },
+  {
+    "question": "Get ligand interactions for ligand ID 5328 and save to ligand_5328_interactions.json",
+    "expected_tools": ["get_ligand_interactions_to_file"],
+    "expected_parameters": {
+      "ligand_id": 5328,
+      "filename": "ligand_5328_interactions.json"
+    },
+    "answer": "I'll retrieve interaction data for ligand 5328 using the get_ligand_interactions_to_file tool and save the results to ligand_5328_interactions.json."
+  },
+  {
+    "question": "Search for small molecule ligands and save them to small_molecules.json",
+    "expected_tools": ["search_ligands_to_file"],
+    "expected_parameters": {
+      "ligand_type": "Small molecule",
+      "filename": "small_molecules.json"
+    },
+    "answer": "I'll search for small molecule ligands using the search_ligands_to_file tool with ligand_type='Small molecule' and save the results to small_molecules.json."
+  }
+] 
