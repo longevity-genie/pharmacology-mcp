@@ -123,6 +123,10 @@ async with httpx.AsyncClient() as client:
     ligands = response.json()
 ```
 
+### Usage Example
+
+![Pharmacology MCP Usage Example](images/pharma_example.jpg)
+
 ### Local File Tools
 
 The server also provides MCP tools for saving search results to files:
