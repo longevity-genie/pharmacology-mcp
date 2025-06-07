@@ -1,6 +1,6 @@
 [project]
 name = "pharmacology-mcp"
-version = "0.1.1"
+version = "0.1.2"
 description = "MCP for Guide to Pharmacology database"
 readme = "README.md"
 authors = [
@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-pharmacology-mcp = "pharmacology_mcp.server:cli_app"
+pharmacology-mcp = "pharmacology_mcp.server:app"
 server = "pharmacology_mcp.server:cli_app"
 stdio = "pharmacology_mcp.server:cli_app_stdio"
 sse = "pharmacology_mcp.server:cli_app_sse"

@@ -80,9 +80,9 @@ def run_mcp_server(transport: str, host: str = DEFAULT_HOST, port: int = DEFAULT
         anyio.run(partial(mcp.run_async, transport=transport, host=host, port=port))
 
 # Create the main CLI app
-cli_app = typer.Typer(help="Pharmacology MCP Server CLI")
+app = typer.Typer(help="Pharmacology MCP Server CLI")
 
-@cli_app.command("server")
+@app.command("server")
 def server_command(
     host: Annotated[str, typer.Option(help="Host to run the server on.")] = DEFAULT_HOST,
     port: Annotated[int, typer.Option(help="Port to run the server on.")] = DEFAULT_PORT,
@@ -96,12 +96,12 @@ def server_command(
     
     run_mcp_server(transport=transport, host=host, port=port)
 
-@cli_app.command("stdio")
+@app.command("stdio")
 def stdio_command():
     """Run the Pharmacology MCP server with stdio transport."""
     run_mcp_server(transport="stdio")
 
-@cli_app.command("sse")
+@app.command("sse")
 def sse_command(
     host: Annotated[str, typer.Option(help="Host to run the server on.")] = DEFAULT_HOST,
     port: Annotated[int, typer.Option(help="Port to run the server on.")] = DEFAULT_PORT,
@@ -120,5 +120,12 @@ def cli_app_sse():
     setup_logging()
     run_mcp_server(transport="sse")
 
+# Direct server function for the 'server' entry point
+def cli_app():
+    """Entry point for the main CLI app (used by pyproject.toml server entry)"""
+    setup_logging()
+    run_mcp_server(transport=DEFAULT_TRANSPORT)
+
 if __name__ == "__main__":
-    cli_app() 
+    # When run as a module, use the full CLI with subcommands
+    app() 
