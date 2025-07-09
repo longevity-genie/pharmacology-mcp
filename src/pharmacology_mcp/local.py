@@ -57,7 +57,7 @@ async def search_targets_to_file(
     
     # Make the API request
     base_url = "https://www.guidetopharmacology.org/services"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(f"{base_url}/targets", params=params)
         response.raise_for_status()
         
@@ -129,7 +129,7 @@ async def search_ligands_to_file(
     
     # Make the API request
     base_url = "https://www.guidetopharmacology.org/services"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(f"{base_url}/ligands", params=params)
         response.raise_for_status()
         
@@ -187,7 +187,7 @@ async def get_target_interactions_to_file(
     
     # Make the API request
     base_url = "https://www.guidetopharmacology.org/services"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(f"{base_url}/targets/{target_id}/interactions", params=params)
         response.raise_for_status()
         
@@ -245,7 +245,7 @@ async def get_ligand_interactions_to_file(
     
     # Make the API request
     base_url = "https://www.guidetopharmacology.org/services"
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(f"{base_url}/ligands/{ligand_id}/interactions", params=params)
         response.raise_for_status()
         

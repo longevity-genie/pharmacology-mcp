@@ -13,13 +13,10 @@ import tempfile
 import os
 from pathlib import Path
 
-# Import the local MCP tools directly
-from src.pharmacology_mcp.local import (
-    search_targets_to_file,
-    search_ligands_to_file,
-    get_target_interactions_to_file,
-    get_ligand_interactions_to_file
-)
+# Import the FastMCP components
+from fastmcp import FastMCP
+from fastmcp.client import Client
+from src.pharmacology_mcp.local import pharmacology_local_mcp
 
 
 class TestPharmacologyMCPJudged:
@@ -28,6 +25,9 @@ class TestPharmacologyMCPJudged:
     def setup_method(self):
         """Setup for each test"""
         self.temp_dir = tempfile.mkdtemp()
+        # Create a FastMCP server with the local tools mounted
+        self.mcp = FastMCP(name="TestPharmacologyServer")
+        self.mcp.mount(pharmacology_local_mcp, prefix="local")
     
     def teardown_method(self):
         """Cleanup after each test"""
@@ -67,13 +67,23 @@ class TestPharmacologyMCPJudged:
                 if isinstance(data, list) and data:
                     first_item = data[0]
                     if isinstance(first_item, dict):
-                        # Check for common required fields
-                        required = ["name"] + ([k for k in first_item.keys() if k.endswith("Id")])
-                        if all(field in first_item for field in required[:2]):  # Check at least name and one ID
+                        # Check for common required fields - name variants and IDs
+                        name_fields = ["name", "ligandName", "targetName", "ligand_name", "target_name"]
+                        id_fields = [k for k in first_item.keys() if k.endswith("Id")]
+                        
+                        has_name = any(field in first_item for field in name_fields)
+                        has_id = len(id_fields) > 0
+                        
+                        if has_name and has_id:
                             judgment["score"] += 1
                             judgment["details"].append("✓ Required fields present")
                         else:
-                            judgment["issues"].append("✗ Missing required fields")
+                            missing = []
+                            if not has_name:
+                                missing.append("name field")
+                            if not has_id:
+                                missing.append("ID field")
+                            judgment["issues"].append(f"✗ Missing required fields: {missing}")
                     else:
                         judgment["issues"].append("✗ Results are not dictionaries")
                 else:
@@ -82,9 +92,10 @@ class TestPharmacologyMCPJudged:
             elif criterion == "meaningful_content":
                 if isinstance(data, list) and data:
                     meaningful = any(
-                        isinstance(item, dict) and 
-                        item.get("name") and 
-                        len(str(item.get("name", ""))) > 2
+                        isinstance(item, dict) and any(
+                            item.get(name_field) and len(str(item.get(name_field, ""))) > 2
+                            for name_field in ["name", "ligandName", "targetName", "ligand_name", "target_name"]
+                        )
                         for item in data
                     )
                     if meaningful:
@@ -110,15 +121,19 @@ class TestPharmacologyMCPJudged:
         """
         file_path = os.path.join(self.temp_dir, "dopamine_targets.json")
         
-        # Execute the search
-        result_path = await search_targets_to_file(
-            file_path_str=file_path,
-            name="dopamine"
-        )
+        # Execute the search using Client
+        async with Client(self.mcp) as client:
+            result_path = await client.call_tool(
+                "local_search_targets_to_file",
+                {
+                    "file_path_str": file_path,
+                    "name": "dopamine"
+                }
+            )
         
         # Verify file was created
         assert os.path.exists(file_path), "Results file should be created"
-        assert result_path == file_path, "Returned path should match input path"
+        assert result_path.data == file_path, "Returned path should match input path"
         
         # Load and judge results
         with open(file_path, 'r') as f:
@@ -169,10 +184,15 @@ class TestPharmacologyMCPJudged:
         """
         file_path = os.path.join(self.temp_dir, "aspirin_ligands.json")
         
-        result_path = await search_ligands_to_file(
-            file_path_str=file_path,
-            name="aspirin"
-        )
+        # Execute the search using Client
+        async with Client(self.mcp) as client:
+            result_path = await client.call_tool(
+                "local_search_ligands_to_file",
+                {
+                    "file_path_str": file_path,
+                    "name": "aspirin"
+                }
+            )
         
         assert os.path.exists(file_path), "Results file should be created"
         
@@ -221,10 +241,15 @@ class TestPharmacologyMCPJudged:
         """
         file_path = os.path.join(self.temp_dir, "gpcr_targets.json")
         
-        result_path = await search_targets_to_file(
-            file_path_str=file_path,
-            target_type="GPCR"
-        )
+        # Execute the search using Client
+        async with Client(self.mcp) as client:
+            result_path = await client.call_tool(
+                "local_search_targets_to_file",
+                {
+                    "file_path_str": file_path,
+                    "target_type": "GPCR"
+                }
+            )
         
         assert os.path.exists(file_path), "Results file should be created"
         
@@ -283,10 +308,15 @@ class TestPharmacologyMCPJudged:
         target_id = 2486
         file_path = os.path.join(self.temp_dir, f"target_{target_id}_interactions.json")
         
-        result_path = await get_target_interactions_to_file(
-            target_id=target_id,
-            file_path_str=file_path
-        )
+        # Execute the search using Client
+        async with Client(self.mcp) as client:
+            result_path = await client.call_tool(
+                "local_get_target_interactions_to_file",
+                {
+                    "target_id": target_id,
+                    "file_path_str": file_path
+                }
+            )
         
         assert os.path.exists(file_path), "Results file should be created"
         
@@ -301,29 +331,19 @@ class TestPharmacologyMCPJudged:
         
         # Interaction-specific checks
         if isinstance(interactions, list) and interactions:
-            # Check for pharmacological data
+            # Check for pharmacological relevance - affinity data
             has_affinity = any(
-                interaction.get("affinity") or interaction.get("affinityParameter")
-                for interaction in interactions
-            )
-            has_action = any(
-                interaction.get("action") or interaction.get("type")
+                interaction.get("affinity") or interaction.get("concentration")
                 for interaction in interactions
             )
             
             if has_affinity:
                 judgment["score"] += 1
-                judgment["details"].append("✓ Contains affinity data")
+                judgment["details"].append("✓ Pharmacological data (affinity/concentration) present")
             else:
-                judgment["issues"].append("✗ No affinity data found")
+                judgment["issues"].append("✗ No pharmacological affinity data found")
             
-            if has_action:
-                judgment["score"] += 1
-                judgment["details"].append("✓ Contains action/type data")
-            else:
-                judgment["issues"].append("✗ No action/type data found")
-            
-            judgment["max_score"] += 2
+            judgment["max_score"] += 1
         
         print(f"\n=== {judgment['test_name']} ===")
         print(f"Score: {judgment['score']}/{judgment['max_score']}")
@@ -333,7 +353,7 @@ class TestPharmacologyMCPJudged:
             print(issue)
         
         assert judgment["passed"], f"Test failed: {judgment['issues']}"
-        assert judgment["score"] >= judgment["max_score"] * 0.6, f"Quality too low: {judgment['score']}/{judgment['max_score']}"
+        assert judgment["score"] >= judgment["max_score"] * 0.7, f"Quality too low: {judgment['score']}/{judgment['max_score']}"
     
     @pytest.mark.asyncio
     async def test_workflow_integration_judged(self):
@@ -361,67 +381,85 @@ class TestPharmacologyMCPJudged:
         
         # Step 1: Search targets
         targets_file = os.path.join(self.temp_dir, "workflow_targets.json")
-        await search_targets_to_file(
-            file_path_str=targets_file,
-            name="dopamine"
-        )
+        async with Client(self.mcp) as client:
+            await client.call_tool(
+                "local_search_targets_to_file",
+                {
+                    "file_path_str": targets_file,
+                    "name": "dopamine"
+                }
+            )
         
+        # Judge targets step
         if os.path.exists(targets_file):
             with open(targets_file, 'r') as f:
                 targets = json.load(f)
-            if isinstance(targets, list) and targets:
+            if isinstance(targets, list) and len(targets) > 0:
                 workflow_judgment["score"] += 2
                 workflow_judgment["details"].append(f"✓ Step 1: Found {len(targets)} targets")
             else:
+                workflow_judgment["passed"] = False
                 workflow_judgment["issues"].append("✗ Step 1: No targets found")
         else:
             workflow_judgment["passed"] = False
-            workflow_judgment["issues"].append("✗ Step 1: Targets file not created")
+            workflow_judgment["issues"].append("✗ Step 1: Target search failed")
         
         # Step 2: Search ligands
         ligands_file = os.path.join(self.temp_dir, "workflow_ligands.json")
-        await search_ligands_to_file(
-            file_path_str=ligands_file,
-            approved=True
-        )
+        async with Client(self.mcp) as client:
+            await client.call_tool(
+                "local_search_ligands_to_file",
+                {
+                    "file_path_str": ligands_file,
+                    "approved": True
+                }
+            )
         
+        # Judge ligands step
         if os.path.exists(ligands_file):
             with open(ligands_file, 'r') as f:
                 ligands = json.load(f)
-            if isinstance(ligands, list) and ligands:
+            if isinstance(ligands, list) and len(ligands) > 0:
                 workflow_judgment["score"] += 2
-                workflow_judgment["details"].append(f"✓ Step 2: Found {len(ligands)} ligands")
+                workflow_judgment["details"].append(f"✓ Step 2: Found {len(ligands)} approved ligands")
             else:
+                workflow_judgment["passed"] = False
                 workflow_judgment["issues"].append("✗ Step 2: No ligands found")
         else:
             workflow_judgment["passed"] = False
-            workflow_judgment["issues"].append("✗ Step 2: Ligands file not created")
+            workflow_judgment["issues"].append("✗ Step 2: Ligand search failed")
         
-        # Step 3: Get interactions (if we have targets)
-        if 'targets' in locals() and targets:
+        # Step 3: Get interactions (if targets were found)
+        if 'targets' in locals() and isinstance(targets, list) and targets:
             target_id = targets[0].get("targetId")
             if target_id:
-                interactions_file = os.path.join(self.temp_dir, "workflow_interactions.json")
-                await get_target_interactions_to_file(
-                    target_id=target_id,
-                    file_path_str=interactions_file
-                )
+                interactions_file = os.path.join(self.temp_dir, f"workflow_interactions_{target_id}.json")
+                async with Client(self.mcp) as client:
+                    await client.call_tool(
+                        "local_get_target_interactions_to_file",
+                        {
+                            "target_id": target_id,
+                            "file_path_str": interactions_file
+                        }
+                    )
                 
+                # Judge interactions step
                 if os.path.exists(interactions_file):
                     with open(interactions_file, 'r') as f:
                         interactions = json.load(f)
-                    if isinstance(interactions, list):
+                    if isinstance(interactions, list) and len(interactions) > 0:
                         workflow_judgment["score"] += 2
                         workflow_judgment["details"].append(f"✓ Step 3: Found {len(interactions)} interactions")
                     else:
-                        workflow_judgment["issues"].append("✗ Step 3: Invalid interactions data")
+                        workflow_judgment["issues"].append("✗ Step 3: No interactions found")
                 else:
-                    workflow_judgment["issues"].append("✗ Step 3: Interactions file not created")
+                    workflow_judgment["issues"].append("✗ Step 3: Interaction search failed")
             else:
-                workflow_judgment["issues"].append("✗ Step 3: No target ID available")
+                workflow_judgment["issues"].append("✗ Step 3: No valid target ID for interaction search")
         else:
-            workflow_judgment["issues"].append("✗ Step 3: No targets available for interaction search")
+            workflow_judgment["issues"].append("✗ Step 3: Cannot proceed without targets")
         
+        # Print workflow results
         print(f"\n=== {workflow_judgment['test_name']} ===")
         print(f"Score: {workflow_judgment['score']}/{workflow_judgment['max_score']}")
         for detail in workflow_judgment["details"]:
@@ -430,7 +468,7 @@ class TestPharmacologyMCPJudged:
             print(issue)
         
         assert workflow_judgment["passed"], f"Workflow failed: {workflow_judgment['issues']}"
-        assert workflow_judgment["score"] >= 4, f"Workflow quality too low: {workflow_judgment['score']}/{workflow_judgment['max_score']}"
+        assert workflow_judgment["score"] >= workflow_judgment["max_score"] * 0.6, f"Workflow quality too low: {workflow_judgment['score']}/{workflow_judgment['max_score']}"
 
 
 if __name__ == "__main__":

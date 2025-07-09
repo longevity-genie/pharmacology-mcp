@@ -1,7 +1,9 @@
 import asyncio
 import httpx
 import json
+import pytest
 
+@pytest.mark.asyncio
 async def test_api():
     base_url = 'https://www.guidetopharmacology.org/services'
     
