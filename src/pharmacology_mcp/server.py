@@ -13,7 +13,7 @@ from typing_extensions import Annotated
 from pharmacology_mcp.pharmacology_api import PharmacologyRestAPI
 from pycomfort.logging import to_nice_stdout, to_nice_file
 from fastmcp import FastMCP
-from .local import pharmacology_local_mcp
+from pharmacology_mcp.local import pharmacology_local_mcp
 
 class TransportType(str, Enum):
     STDIO = "stdio"

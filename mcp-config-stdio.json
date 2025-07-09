@@ -2,8 +2,7 @@
   "mcpServers": {
     "pharmacology-mcp": {
       "command": "uvx",
-      "args": ["pharmacology-mcp", "stdio"],
-      "env": {}
+      "args": ["--from", "pharmacology-mcp", "stdio"]
     }
   }
 } 

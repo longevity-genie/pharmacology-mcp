@@ -158,7 +158,7 @@ npx @modelcontextprotocol/inspector --config mcp-config-stdio.json --server phar
 
 For HTTP mode (ensure server is running first):
 ```bash
-npx @modelcontextprotocol/inspector --config mcp-config.json --server pharmacology-mcp
+npx @modelcontextprotocol/inspector --config mcp-config-http.json --server pharmacology-mcp
 ```
 
 For local development:
@@ -211,6 +211,24 @@ uv run pytest -vvv -s
 ```
 
 You can use MCP inspector with locally built MCP server same way as with uvx.
+
+### Troubleshooting
+
+#### Timeout Issues
+If you encounter timeout errors when using tools with `approved=True` parameter (which can be slow due to large datasets), the server is configured with 30-second timeouts. You can:
+
+1. **Use more specific filters** to reduce response size
+2. **Check your internet connection** for stability  
+3. **Run tests individually** if the full test suite times out:
+   ```bash
+   pytest tests/test_judged_simple.py::TestPharmacologyMCPJudged::test_search_dopamine_targets_judged -v
+   ```
+
+#### Cache Issues with uvx
+If you encounter problems with uvx, try cleaning the uv cache:
+```bash
+uv cache clean
+```
 
 *Note: Using the MCP Inspector is optional. Most MCP clients (like Cursor, Windsurf, etc.) will automatically display the available tools from this server once configured. However, the Inspector can be useful for detailed testing and exploration.*
 

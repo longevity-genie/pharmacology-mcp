@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "pharmacology-mcp": {
-      "command": "uv",
-      "args": ["run", "stdio"],
-      "env": {}
-    }
-  }
-} 
